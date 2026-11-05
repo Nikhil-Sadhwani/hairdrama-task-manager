@@ -41,6 +41,8 @@ export default function TasksPage() {
 
   const [updatingPriorityTaskId, setUpdatingPriorityTaskId] = useState("");
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   // Load Tasks
   const loadTasks = async () => {
     setIsLoadingTasks(true);
@@ -56,7 +58,7 @@ export default function TasksPage() {
       setCurrentUserId(data.session.user.id);
 
       const response = await fetch(
-        "http://127.0.0.1:5000/api/tasks",
+        `${API_URL}/api/tasks`,
         {
           headers: {
             Authorization: `Bearer ${data.session.access_token}`,
@@ -88,7 +90,7 @@ export default function TasksPage() {
       if (!data.session) return;
 
       const response = await fetch(
-        "http://127.0.0.1:5000/api/users",
+        `${API_URL}/api/users`,
         {
           headers: {
             Authorization: `Bearer ${data.session.access_token}`,
@@ -122,7 +124,7 @@ export default function TasksPage() {
       }
 
       const response = await fetch(
-        "http://127.0.0.1:5000/api/tasks",
+        `${API_URL}/api/tasks`,
         {
           method: "POST",
           headers: {
@@ -176,7 +178,7 @@ export default function TasksPage() {
       }
 
       const response = await fetch(
-        `http://127.0.0.1:5000/api/tasks/${taskId}/complete`,
+        `${API_URL}/api/tasks/${taskId}/complete`,
         {
           method: "POST",
           headers: {
@@ -219,7 +221,7 @@ export default function TasksPage() {
       }
 
       const response = await fetch(
-        `http://127.0.0.1:5000/api/tasks/${taskId}/assign`,
+        `${API_URL}/api/tasks/${taskId}/assign`,
         {
           method: "PATCH",
           headers: {
@@ -269,7 +271,7 @@ export default function TasksPage() {
       }
 
       const response = await fetch(
-        `http://127.0.0.1:5000/api/tasks/${taskId}`,
+        `${API_URL}/api/tasks/${taskId}`,
         {
           method: "DELETE",
           headers: {
@@ -311,7 +313,7 @@ export default function TasksPage() {
     }
 
     const response = await fetch(
-      `http://127.0.0.1:5000/api/tasks/${taskId}/priority`,
+      `${API_URL}/api/tasks/${taskId}/priority`,
       {
         method: "PATCH",
         headers: {

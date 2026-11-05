@@ -154,7 +154,11 @@ export default function TasksPage() {
       setDueDate("");
       setNewAssignedTo("");
 
-      await loadTasks();
+      // await loadTasks();
+      setTasks((previousTasks) => [
+        result.task,
+        ...previousTasks,
+      ]);
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Task creation failed"

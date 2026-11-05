@@ -13,14 +13,19 @@ load_dotenv()
 # Initialize Flask application
 app = Flask(__name__)
 
-# Allow frontend to communicate with backend
+FRONTEND_URL = os.getenv(
+    "FRONTEND_URL",
+    "http://localhost:3000"
+)
+
 CORS(
     app,
     resources={
         r"/api/*": {
             "origins": [
                 "http://localhost:3000",
-                "http://127.0.0.1:3000"
+                "http://127.0.0.1:3000",
+                FRONTEND_URL
             ]
         }
     },

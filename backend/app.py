@@ -16,7 +16,7 @@ app = Flask(__name__)
 FRONTEND_URL = os.getenv(
     "FRONTEND_URL",
     "http://localhost:3000"
-)
+).rstrip("/")
 
 CORS(
     app,
@@ -25,7 +25,6 @@ CORS(
             "origins": [
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
-                "http://192.168.1.37:3000",
                 FRONTEND_URL
             ]
         }

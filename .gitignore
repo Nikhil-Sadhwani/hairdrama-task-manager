@@ -1,0 +1,33 @@
+
+# Dependencies
+node_modules/
+venv/
+backend/venv/
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Deployment
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+
+# System Files
+.DS_Store
+Thumbs.db

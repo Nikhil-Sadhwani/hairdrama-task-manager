@@ -648,6 +648,59 @@ def update_task_priority(task_id):
             "message": str(error)
         }), 500
 
+
+@app.route("/api/tasks/<task_id>/due-date", methods=["PATCH"])
+def update_task_due_date(task_id):
+
+    try:
+        client, user = get_logged_in_user()
+
+        if not user:
+            return jsonify({"message": "Unauthorized"}), 401
+
+        data = request.get_json() or {}
+        due_date = data.get("due_date") or None
+
+        # Check task
+        task_response = client.table("tasks") \
+            .select("created_by, status") \
+            .eq("id", task_id) \
+            .execute()
+
+        if not task_response.data:
+            return jsonify({"message": "Task not found"}), 404
+
+        task = task_response.data[0]
+
+        if task["created_by"] != user.id:
+            return jsonify({
+                "message": "Only task creator can change deadline"
+            }), 403
+
+        if task["status"] == "completed":
+            return jsonify({
+                "message": "Completed task deadline cannot be changed"
+            }), 400
+
+        # Update due date
+        client.table("tasks") \
+            .update({"due_date": due_date}) \
+            .eq("id", task_id) \
+            .execute()
+
+        return jsonify({
+            "status": "success",
+            "message": "Deadline updated successfully!"
+        })
+
+    except Exception as error:
+
+        app.logger.exception("UPDATE DEADLINE ERROR")
+
+        return jsonify({
+            "status": "error",
+            "message": str(error)
+        }), 500
     
 # Start Flask Server
 if __name__ == "__main__":

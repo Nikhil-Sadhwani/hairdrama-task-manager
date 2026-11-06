@@ -41,6 +41,8 @@ export default function TasksPage() {
 
   const [updatingPriorityTaskId, setUpdatingPriorityTaskId] = useState("");
 
+  const [updatingDueDateTaskId, setUpdatingDueDateTaskId] = useState("");
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   // Load Tasks
@@ -107,6 +109,60 @@ export default function TasksPage() {
       console.error("Load users error:", error);
     }
   };
+
+  const handleDueDateChange = async (
+  taskId: string,
+  dueDate: string
+) => {
+
+  setUpdatingDueDateTaskId(taskId);
+
+  try {
+    const { data } = await supabase.auth.getSession();
+
+    if (!data.session) {
+      setMessage("Please login first");
+      return;
+    }
+
+    const response = await fetch(
+      `${API_URL}/api/tasks/${taskId}/due-date`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${data.session.access_token}`,
+        },
+        body: JSON.stringify({
+          due_date: dueDate || null,
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message);
+    }
+
+    setTasks((previousTasks) =>
+      previousTasks.map((task) =>
+        task.id === taskId
+          ? { ...task, due_date: dueDate || null }
+          : task
+      )
+    );
+
+    setMessage(result.message);
+
+  } catch (error) {
+    setMessage(
+      error instanceof Error ? error.message : "Deadline update failed"
+    );
+  } finally {
+    setUpdatingDueDateTaskId("");
+  }
+};
 
   // Create Task
   const handleCreateTask = async (e: React.FormEvent) => {
@@ -525,9 +581,38 @@ export default function TasksPage() {
 
         
 
-                  <p className="text-sm">
-                    Deadline: {task.due_date || "Not set"}
-                  </p>
+                  <div>
+  <label className="block text-sm font-medium mb-2">
+    Task Deadline
+  </label>
+
+  {task.status === "pending" &&
+   task.created_by === currentUserId ? (
+
+    <input
+      type="date"
+      value={task.due_date || ""}
+      disabled={updatingDueDateTaskId === task.id}
+      onChange={(e) =>
+        handleDueDateChange(task.id, e.target.value)
+      }
+      className="w-full border p-3 rounded-lg text-gray-900 disabled:opacity-50"
+    />
+
+  ) : (
+
+    <p className="text-sm text-gray-600">
+      {task.due_date || "No deadline set"}
+    </p>
+
+  )}
+
+  {updatingDueDateTaskId === task.id && (
+    <p className="text-sm text-purple-600 mt-2">
+      Updating deadline...
+    </p>
+  )}
+</div>
 
                   <p className="text-sm">
                     Assigned to: {

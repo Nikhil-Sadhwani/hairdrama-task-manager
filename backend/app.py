@@ -5,8 +5,13 @@ import os
 from dotenv import load_dotenv
 from supabase import create_client
 
-import smtplib
+# import smtplib
+import base64
 from email.message import EmailMessage
+
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
 
 load_dotenv()
 
@@ -39,27 +44,75 @@ SUPABASE_KEY = os.getenv("SUPABASE_PUBLISHABLE_KEY")
 # create Supabase connection 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# def send_email(to_email, subject, body):
+
+#     gmail_user = os.getenv("GMAIL_USER")
+#     gmail_password = os.getenv("GMAIL_APP_PASSWORD")
+
+#     if not gmail_user or not gmail_password:
+#         raise ValueError("Gmail credentials are missing")
+
+#     message = EmailMessage()
+
+#     message["From"] = gmail_user
+#     message["To"] = to_email
+#     message["Subject"] = subject
+
+#     message.set_content(body)
+
+#     with smtplib.SMTP("smtp.gmail.com", 587) as server:
+#         server.starttls()
+#         server.login(gmail_user, gmail_password)
+#         server.send_message(message)
+
+
 def send_email(to_email, subject, body):
 
+    client_id = os.getenv("GMAIL_CLIENT_ID")
+    client_secret = os.getenv("GMAIL_CLIENT_SECRET")
+    refresh_token = os.getenv("GMAIL_REFRESH_TOKEN")
     gmail_user = os.getenv("GMAIL_USER")
-    gmail_password = os.getenv("GMAIL_APP_PASSWORD")
 
-    if not gmail_user or not gmail_password:
-        raise ValueError("Gmail credentials are missing")
+    # Gmail Credentials
+    credentials = Credentials(
+        token=None,
+        refresh_token=refresh_token,
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=client_id,
+        client_secret=client_secret,
+        scopes=["https://www.googleapis.com/auth/gmail.send"]
+    )
 
+    # Generate Access Token
+    credentials.refresh(Request())
+
+    # Connect Gmail API
+    service = build(
+        "gmail",
+        "v1",
+        credentials=credentials,
+        cache_discovery=False
+    )
+
+    # Create Email
     message = EmailMessage()
 
-    message["From"] = gmail_user
     message["To"] = to_email
+    message["From"] = gmail_user
     message["Subject"] = subject
 
     message.set_content(body)
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(gmail_user, gmail_password)
-        server.send_message(message)
+    # Encode Email
+    encoded_message = base64.urlsafe_b64encode(
+        message.as_bytes()
+    ).decode()
 
+    # Send Email
+    service.users().messages().send(
+        userId="me",
+        body={"raw": encoded_message}
+    ).execute()
 
 def get_logged_in_user():
     auth_header = request.headers.get("Authorization")
